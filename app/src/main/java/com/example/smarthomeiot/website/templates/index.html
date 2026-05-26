@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartHome IoT</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --security: #2d9b73;
+            --audio: #e58b2d;
+            --curtain: #4c8dda;
+            --light: #ffc83d;
+            --climate: #31a7d8;
+            --surface: rgba(255, 255, 255, 0.74);
+            --surface-strong: rgba(255, 255, 255, 0.82);
+            --surface-dark: rgba(78, 91, 98, 0.48);
+            --surface-darker: rgba(34, 41, 47, 0.82);
+            --text: #111827;
+            --muted: #4b5563;
+            --white-soft: rgba(255, 255, 255, 0.86);
+            --border: rgba(255, 255, 255, 0.46);
+            --radius: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            min-height: 100%;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            color: var(--text);
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background:
+                linear-gradient(180deg, #78aed6 0%, #d9c796 48%, #8c714b 100%);
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        button {
+            border: 0;
+            cursor: pointer;
+        }
+
+        .app-shell {
+            width: min(100%, 980px);
+            margin: 0 auto;
+            padding: 22px 16px 98px;
+        }
+
+        .topbar,
+        .title-block,
+        .section-title {
+            color: white;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .brand {
+            flex: 1;
+            color: var(--white-soft);
+            font-size: 0.98rem;
+            font-weight: 800;
+        }
+
+        .icon-link {
+            display: inline-grid;
+            width: 44px;
+            height: 44px;
+            place-items: center;
+            border-radius: var(--radius);
+            color: var(--white-soft);
+            background: transparent;
+            text-decoration: none;
+        }
+
+        .icon-link svg,
+        .icon svg,
+        .button-icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        .title-block {
+            margin-bottom: 22px;
+        }
+
+        .title-block h1 {
+            margin: 0;
+            font-size: clamp(2.4rem, 7vw, 4.4rem);
+            line-height: 0.98;
+            letter-spacing: 0;
+            font-weight: 900;
+        }
+
+        .title-block p {
+            margin: 14px 0 0;
+            color: var(--white-soft);
+            font-size: 1.08rem;
+            font-weight: 800;
+        }
+
+        .status-strip {
+            display: grid;
+            grid-auto-flow: column;
+            grid-auto-columns: minmax(178px, 1fr);
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+        }
+
+        .status-strip::-webkit-scrollbar {
+            display: none;
+        }
+
+        .status-chip,
+        .scene-button,
+        .card,
+        .bottom-nav {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+
+        .status-chip {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-height: 80px;
+            padding: 13px 16px;
+            background: var(--surface-dark);
+            color: white;
+        }
+
+        .status-chip.selected {
+            background: var(--surface-strong);
+            color: var(--text);
+        }
+
+        .status-chip .label {
+            display: block;
+            font-weight: 900;
+        }
+
+        .status-chip .value {
+            display: block;
+            margin-top: 2px;
+            color: rgba(255, 255, 255, 0.74);
+            font-size: 0.9rem;
+            font-weight: 800;
+        }
+
+        .status-chip.selected .value {
+            color: var(--muted);
+        }
+
+        .section-title {
+            margin: 28px 0 12px;
+            font-size: 1.36rem;
+            font-weight: 900;
+        }
+
+        .scene-grid,
+        .card-grid,
+        .media-actions,
+        .door-actions,
+        .quick-actions {
+            display: grid;
+            gap: 10px;
+        }
+
+        .scene-grid,
+        .card-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .scene-button {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            width: 100%;
+            min-height: 72px;
+            padding: 0 18px;
+            background: var(--surface-strong);
+            color: var(--text);
+            font-weight: 900;
+            text-align: left;
+        }
+
+        .scene-button.dark {
+            background: rgba(94, 85, 72, 0.58);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.22);
+        }
+
+        .card {
+            min-height: 178px;
+            padding: 18px;
+            background: var(--surface);
+        }
+
+        .card.wide {
+            grid-column: 1 / -1;
+            min-height: 0;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .icon {
+            display: inline-grid;
+            flex: 0 0 auto;
+            width: 46px;
+            height: 46px;
+            place-items: center;
+            border-radius: 999px;
+            color: var(--accent);
+            background: color-mix(in srgb, var(--accent) 14%, transparent);
+        }
+
+        .card-title,
+        .card-subtitle {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .card-title {
+            font-size: 1.22rem;
+            font-weight: 900;
+        }
+
+        .card-subtitle {
+            margin-top: 2px;
+            color: var(--muted);
+            font-size: 0.92rem;
+            font-weight: 750;
+            text-transform: capitalize;
+        }
+
+        .metric {
+            margin: 0 0 16px;
+            color: var(--curtain);
+            font-size: clamp(2.7rem, 9vw, 4.5rem);
+            line-height: 1;
+            font-weight: 900;
+        }
+
+        .range-control {
+            width: 100%;
+            accent-color: #7fd8ff;
+        }
+
+        .quick-actions {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            margin-top: 22px;
+        }
+
+        .media-actions,
+        .door-actions {
+            grid-template-columns: 1fr 1.35fr 1fr;
+        }
+
+        .door-actions {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .outline-button,
+        .filled-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            min-height: 48px;
+            border-radius: var(--radius);
+            font-weight: 850;
+        }
+
+        .outline-button {
+            color: var(--primary);
+            background: transparent;
+            border: 1px solid rgba(17, 24, 39, 0.12);
+        }
+
+        .filled-button {
+            color: white;
+            background: var(--accent);
+        }
+
+        .bottom-nav {
+            position: fixed;
+            left: max(16px, calc((100vw - 980px) / 2 + 16px));
+            right: max(16px, calc((100vw - 980px) / 2 + 16px));
+            bottom: 14px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            padding: 9px 8px;
+            background: rgba(122, 112, 90, 0.66);
+        }
+
+        .nav-item {
+            display: grid;
+            place-items: center;
+            gap: 3px;
+            color: rgba(255, 255, 255, 0.46);
+            font-size: 0.82rem;
+            font-weight: 800;
+            text-decoration: none;
+        }
+
+        .nav-item.active {
+            color: white;
+        }
+
+        .nav-item svg {
+            width: 25px;
+            height: 25px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background:
+                    linear-gradient(180deg, #1e3844 0%, #343e36 48%, #564a32 100%);
+            }
+
+            .status-chip.selected,
+            .scene-button,
+            .card {
+                background: var(--surface-darker);
+                color: white;
+                border-color: rgba(255, 255, 255, 0.22);
+            }
+
+            .card-subtitle,
+            .status-chip.selected .value {
+                color: rgba(255, 255, 255, 0.72);
+            }
+
+            .outline-button {
+                color: #83d8ff;
+                border-color: rgba(255, 255, 255, 0.14);
+            }
+        }
+
+        @media (max-width: 680px) {
+            .app-shell {
+                padding-top: 18px;
+            }
+
+            .scene-grid,
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .status-strip {
+                grid-auto-columns: minmax(166px, 72vw);
+            }
+
+            .media-actions {
+                grid-template-columns: 0.9fr 1.2fr 0.9fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <svg aria-hidden="true" width="0" height="0" style="position:absolute">
+        <symbol id="icon-home" viewBox="0 0 24 24">
+            <path d="M3 10.8 12 3l9 7.8v9.4h-6v-6h-6v6H3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+        </symbol>
+        <symbol id="icon-history" viewBox="0 0 24 24">
+            <path d="M3 12a9 9 0 1 0 3-6.7M3 4.5v5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </symbol>
+        <symbol id="icon-settings" viewBox="0 0 24 24">
+            <path d="M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z" fill="none" stroke="currentColor" stroke-width="2"/>
+            <path d="M4.9 14.6 3.8 12l1.1-2.6 2.6-.7 1.4-2.4L8.2 3.8 10.8 3l2.4.8.7 2.5 2.4 1.4 2.5-.7 1.4 2.4L21 12l-.8 2.6-2.5.7-1.4 2.4.7 2.5-2.4 1.4-2.6-.8-2.6.8-2.4-1.4.7-2.5-1.4-2.4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+        </symbol>
+        <symbol id="icon-tune" viewBox="0 0 24 24">
+            <path d="M4 7h9M17 7h3M4 17h3M11 17h9M8 14v6M16 4v6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </symbol>
+        <symbol id="icon-lock" viewBox="0 0 24 24">
+            <path d="M7 10V8a5 5 0 0 1 10 0v2M6 10h12v10H6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+        </symbol>
+        <symbol id="icon-unlock" viewBox="0 0 24 24">
+            <path d="M8 10V8a4 4 0 0 1 7.5-2M6 10h12v10H6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+        <symbol id="icon-music" viewBox="0 0 24 24">
+            <path d="M9 18a3 3 0 1 1-2-2.8V5l11-2v11a3 3 0 1 1-2-2.8V7L9 8.3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+        <symbol id="icon-play" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z" fill="currentColor"/>
+        </symbol>
+        <symbol id="icon-pause" viewBox="0 0 24 24">
+            <path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/>
+        </symbol>
+        <symbol id="icon-prev" viewBox="0 0 24 24">
+            <path d="M6 5v14M19 6l-10 6 10 6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+        <symbol id="icon-next" viewBox="0 0 24 24">
+            <path d="M18 5v14M5 6l10 6-10 6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+        <symbol id="icon-sun" viewBox="0 0 24 24">
+            <path d="M12 5V2M12 22v-3M5 12H2M22 12h-3M5.6 5.6 3.5 3.5M20.5 20.5l-2.1-2.1M18.4 5.6l2.1-2.1M3.5 20.5l2.1-2.1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/>
+        </symbol>
+        <symbol id="icon-moon" viewBox="0 0 24 24">
+            <path d="M20 15.3A8.2 8.2 0 0 1 8.7 4 8.5 8.5 0 1 0 20 15.3Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+        </symbol>
+        <symbol id="icon-cloud" viewBox="0 0 24 24">
+            <path d="M7 18h10a4 4 0 0 0 .7-7.9A6 6 0 0 0 6.4 8.4 4.8 4.8 0 0 0 7 18Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+        </symbol>
+    </svg>
+
+    <main class="app-shell">
+        <header class="topbar">
+            <div class="brand">&lt; SmartHome IoT</div>
+            <a class="icon-link" href="/logs" aria-label="Logs">
+                <svg><use href="#icon-history"></use></svg>
+            </a>
+            <a class="icon-link" href="/settings" aria-label="Settings">
+                <svg><use href="#icon-settings"></use></svg>
+            </a>
+        </header>
+
+        <section class="title-block" aria-labelledby="home-title">
+            <h1 id="home-title">My Home</h1>
+            <p>MQTT Web Client</p>
+        </section>
+
+        <section class="status-strip" aria-label="Home status">
+            <div class="status-chip selected">
+                <span class="icon" style="--accent: var(--climate)"><svg><use href="#icon-moon"></use></svg></span>
+                <span>
+                    <span class="label">Climate</span>
+                    <span class="value">No Data</span>
+                </span>
+            </div>
+            <div class="status-chip">
+                <span class="icon" style="--accent: var(--curtain)"><svg><use href="#icon-tune"></use></svg></span>
+                <span>
+                    <span class="label">Curtains</span>
+                    <span class="value"><span data-coord-text>{{ coord }}</span>% Open</span>
+                </span>
+            </div>
+            <div class="status-chip">
+                <span class="icon" style="--accent: var(--security)"><svg><use href="#icon-lock"></use></svg></span>
+                <span>
+                    <span class="label">Security</span>
+                    <span class="value" data-lock-text>{{ lock }}</span>
+                </span>
+            </div>
+            <div class="status-chip">
+                <span class="icon" style="--accent: white"><svg><use href="#icon-cloud"></use></svg></span>
+                <span>
+                    <span class="label">Broker</span>
+                    <span class="value">{% if connected %}Connected{% else %}Offline{% endif %}</span>
+                </span>
+            </div>
+        </section>
+
+        <h2 class="section-title">Scenes &gt;</h2>
+        <section class="scene-grid" aria-label="Scenes">
+            <form method="post" class="command-form">
+                <button class="scene-button" name="morning" type="submit">
+                    <span class="icon" style="--accent: var(--light)"><svg><use href="#icon-sun"></use></svg></span>
+                    Good Morning
+                </button>
+            </form>
+            <form method="post" class="command-form">
+                <button class="scene-button dark" name="leave" type="submit">
+                    <span class="icon" style="--accent: white"><svg><use href="#icon-lock"></use></svg></span>
+                    Leave Home
+                </button>
+            </form>
+        </section>
+
+        <h2 class="section-title">Nursery &gt;</h2>
+        <section class="card-grid" aria-label="Nursery controls">
+            <article class="card" style="--accent: var(--curtain)">
+                <div class="card-header">
+                    <span class="icon"><svg><use href="#icon-tune"></use></svg></span>
+                    <span>
+                        <span class="card-title">Shades</span>
+                        <span class="card-subtitle"><span data-coord-text>{{ coord }}</span>% Open</span>
+                    </span>
+                </div>
+                <p class="metric"><span id="sliderValue">{{ coord }}</span>%</p>
+                <form method="post" id="sliderForm" class="command-form">
+                    <input class="range-control" type="range" id="slider" name="coordinate" min="0" max="100" value="{{ coord }}">
+                </form>
+                <div class="quick-actions">
+                    <button class="outline-button" type="button" data-coordinate="0">0</button>
+                    <button class="outline-button" type="button" data-coordinate="50">50</button>
+                    <button class="outline-button" type="button" data-coordinate="100">100</button>
+                </div>
+            </article>
+
+            <article class="card" style="--accent: var(--light)">
+                <div class="card-header">
+                    <span class="icon"><svg><use href="#icon-moon"></use></svg></span>
+                    <span>
+                        <span class="card-title">Light Sensor</span>
+                        <span class="card-subtitle">Unknown</span>
+                    </span>
+                </div>
+                <p class="metric" style="color: currentColor">--</p>
+                <span class="card-subtitle">Ambient light</span>
+            </article>
+        </section>
+
+        <h2 class="section-title">Entry &gt;</h2>
+        <article class="card wide" style="--accent: var(--security)">
+            <div class="card-header">
+                <span class="icon"><svg><use href="{% if lock == 'locked' %}#icon-lock{% else %}#icon-unlock{% endif %}"></use></svg></span>
+                <span>
+                    <span class="card-title">Front Door</span>
+                    <span class="card-subtitle" data-lock-text>{{ lock }}</span>
+                </span>
+            </div>
+            <div class="door-actions">
+                <form method="post" class="command-form">
+                    <button class="filled-button" style="--accent: var(--security)" name="lock" type="submit">
+                        <svg class="button-icon"><use href="#icon-lock"></use></svg>
+                        Lock
+                    </button>
+                </form>
+                <form method="post" class="command-form">
+                    <button class="outline-button" name="unlock" type="submit">
+                        <svg class="button-icon"><use href="#icon-unlock"></use></svg>
+                        Unlock
+                    </button>
+                </form>
+            </div>
+        </article>
+
+        <h2 class="section-title">Media &gt;</h2>
+        <article class="card wide" style="--accent: var(--audio)">
+            <div class="card-header">
+                <span class="icon"><svg><use href="#icon-music"></use></svg></span>
+                <span>
+                    <span class="card-title">Audio</span>
+                    <span class="card-subtitle" data-audio-status>{{ status }}</span>
+                </span>
+            </div>
+            <div class="media-actions">
+                <form method="post" class="command-form">
+                    <button class="outline-button" name="prev" type="submit" aria-label="Previous">
+                        <svg class="button-icon"><use href="#icon-prev"></use></svg>
+                    </button>
+                </form>
+                <form method="post" class="command-form">
+                    <button class="filled-button" style="--accent: var(--audio)" name="play" type="submit" data-play-button>
+                        <svg class="button-icon"><use href="{% if status == 'Playing' %}#icon-pause{% else %}#icon-play{% endif %}"></use></svg>
+                        <span>{% if status == 'Playing' %}Pause{% else %}Play{% endif %}</span>
+                    </button>
+                </form>
+                <form method="post" class="command-form">
+                    <button class="outline-button" name="next" type="submit" aria-label="Next">
+                        <svg class="button-icon"><use href="#icon-next"></use></svg>
+                    </button>
+                </form>
+            </div>
+        </article>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Primary">
+        <a class="nav-item active" href="/">
+            <svg><use href="#icon-home"></use></svg>
+            Home
+        </a>
+        <a class="nav-item" href="/logs">
+            <svg><use href="#icon-history"></use></svg>
+            Logs
+        </a>
+        <a class="nav-item" href="/settings">
+            <svg><use href="#icon-settings"></use></svg>
+            Settings
+        </a>
+    </nav>
+
+    <script>
+        const slider = document.getElementById("slider");
+        const sliderValue = document.getElementById("sliderValue");
+        const sliderForm = document.getElementById("sliderForm");
+        const playButton = document.querySelector("[data-play-button]");
+
+        async function sendCommand(payload) {
+            const response = await fetch("/api/action", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                throw new Error("Command failed");
+            }
+
+            return response.json();
+        }
+
+        function updateHome(state) {
+            document.querySelectorAll("[data-coord-text]").forEach((node) => {
+                node.textContent = state.coord;
+            });
+            document.querySelectorAll("[data-lock-text]").forEach((node) => {
+                node.textContent = state.lock;
+            });
+            document.querySelector("[data-audio-status]").textContent = state.status;
+            slider.value = state.coord;
+            sliderValue.textContent = state.coord;
+
+            const playing = state.status === "Playing";
+            playButton.querySelector("use").setAttribute("href", playing ? "#icon-pause" : "#icon-play");
+            playButton.querySelector("span").textContent = playing ? "Pause" : "Play";
+        }
+
+        document.querySelectorAll(".command-form").forEach((form) => {
+            form.addEventListener("submit", async (event) => {
+                event.preventDefault();
+                const submitter = event.submitter;
+                const payload = {};
+
+                if (submitter && submitter.name) {
+                    payload[submitter.name] = submitter.value || "1";
+                }
+
+                new FormData(form).forEach((value, key) => {
+                    payload[key] = value;
+                });
+
+                try {
+                    updateHome(await sendCommand(payload));
+                } catch (error) {
+                    if (submitter && submitter.name) {
+                        const fallbackInput = document.createElement("input");
+                        fallbackInput.type = "hidden";
+                        fallbackInput.name = submitter.name;
+                        fallbackInput.value = submitter.value || "1";
+                        form.appendChild(fallbackInput);
+                    }
+                    form.submit();
+                }
+            });
+        });
+
+        slider.addEventListener("input", () => {
+            sliderValue.textContent = slider.value;
+        });
+
+        slider.addEventListener("change", () => {
+            sliderForm.requestSubmit();
+        });
+
+        document.querySelectorAll("[data-coordinate]").forEach((button) => {
+            button.addEventListener("click", () => {
+                slider.value = button.dataset.coordinate;
+                sliderValue.textContent = slider.value;
+                sliderForm.requestSubmit();
+            });
+        });
+    </script>
+</body>
+</html>
