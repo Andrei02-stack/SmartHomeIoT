@@ -13,10 +13,10 @@ status_lock = "unlocked"
 crt_coord = 50
 client = None
 connected = False
-connection_detail = "Broker local 172.20.10.2:1883"
+connection_detail = "Broker local 172.20.10.3:1883"
 logs = []
 mqtt_settings = {
-    "host": os.environ.get("MQTT_HOST", "172.20.10.2"),
+    "host": os.environ.get("MQTT_HOST", "172.20.10.3"),
     "port": int(os.environ.get("MQTT_PORT", "1883")),
     "username": os.environ.get("MQTT_USERNAME", "website"),
     "password": os.environ.get("MQTT_PASSWORD", ""),
