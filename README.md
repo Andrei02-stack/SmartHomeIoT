@@ -2,7 +2,7 @@
 
 ### Pandelică Lucian & Săcăluș Andrei - SRIC1
 
-## 1. Prezentare generalaS
+## 1. Prezentare generala
 
 SmartHome IoT este un sistem local pentru controlul unor dispozitive din locuinta prin MQTT. Sistemul include trei module hardware bazate pe Raspberry Pi Pico W/WH, o aplicatie Android si o interfata web. Comunicarea dintre componente se face printr-un broker MQTT Mosquitto rulat pe calculatorul local.
 
